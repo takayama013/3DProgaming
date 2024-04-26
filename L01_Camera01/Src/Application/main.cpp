@@ -64,6 +64,44 @@ void Application::PreUpdate()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void Application::Update()
 {
+	
+	// カメラ行列の更新
+
+	// どれくらいの大きさか
+	Math::Matrix _mScale =
+		Math::Matrix::CreateScale(1);
+
+	// どれだけ傾けているか
+	Math::Matrix _mRotationX =
+		Math::Matrix::CreateRotationX(DirectX::XMConvertToRadians(45));
+	// ↑引数はラジアン角だからディグリーから直す
+
+	// どれだけ傾けているか
+	static float _yRot = 0;
+	Math::Matrix _mRotationY =
+		Math::Matrix::CreateRotationY(DirectX::XMConvertToRadians(_yRot));
+	//_yRot += 0.5f;
+
+
+	// どの位置か 
+	//Math::Matrix _mTrans = Math::Matrix::CreateTranslation(sin(DirectX::XMConvertToRadians(i)), 6.0f, -5.0f+ sin(DirectX::XMConvertToRadians(i)));
+	Math::Matrix _mTrans = Math::Matrix::CreateTranslation(0, 6.0f, -5.0f);
+
+	// W = S * R * T (拡大 * 回転 * 移動)
+	// カメラのワールド行列を作成し適応指せる
+	Math::Matrix _worldMat = _mScale * _mRotationX  * _mTrans * _mRotationY;	// 行列の合成
+	//Math::Matrix _worldMat =  _mTrans*_mRotation;
+	m_spCamera->SetCameraMatrix(_worldMat);
+
+	// ハム太郎の更新
+	{
+		Math::Matrix _mTrans = Math::Matrix::CreateTranslation(HamuX, HamuY, HamuZ);
+		m_HamuWorld = _mTrans;
+		if (GetAsyncKeyState('W'))HamuZ+=3;
+		if (GetAsyncKeyState('S'))HamuZ-=3;
+		if (GetAsyncKeyState('D'))HamuX+=3;
+		if (GetAsyncKeyState('A'))HamuX-=3;
+	}
 }
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
@@ -120,8 +158,12 @@ void Application::Draw()
 	// 陰影のあるオブジェクト(不透明な物体や2Dキャラ)はBeginとEndの間にまとめてDrawする
 	KdShaderManager::Instance().m_StandardShader.BeginLit();
 	{
-		Math::Matrix _mat = Math::Matrix::CreateTranslation(0, 0, 5);
-		KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_spPoly, _mat);
+		//Math::Matrix _mat = Math::Matrix::CreateTranslation(0, 0, z);
+		//Math::Matrix _rotMat = Math::Matrix::CreateRotationX(z);
+		//_mat._43 = 5.0f;
+		KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_spPoly, m_HamuWorld);
+
+		KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel);
 	}
 	KdShaderManager::Instance().m_StandardShader.EndLit();
 
@@ -233,7 +275,14 @@ bool Application::Init(int w, int h)
 	//===================================================================
 	m_spPoly = std::make_shared<KdSquarePolygon>();
 	m_spPoly->SetMaterial("Asset/Data/LessonData/Character/hamu.png");
-	
+	// 足元を原点にする
+	m_spPoly->SetPivot(KdSquarePolygon::PivotType::Center_Bottom);
+	//===================================================================
+	// 地形の初期化
+	//===================================================================
+	m_spModel = std::make_shared<KdModelData>();
+	m_spModel->Load("Asset/Data/LessonData/Terrain/Terrain.gltf");
+
 	return true;
 }
 
