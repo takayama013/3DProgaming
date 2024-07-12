@@ -54,16 +54,9 @@ private:
 	// カメラ
 	//		↓スマートポインタの一種
 	std::shared_ptr<KdCamera>m_spCamera = nullptr;
-	
-	//板ポリゴン
-	std::shared_ptr<KdSquarePolygon> m_spPoly = nullptr;
-	Math::Matrix m_HamuWorld = Math::Matrix::Identity;
 
-	//地形モデル
-	std::shared_ptr<KdModelData> m_spModel = nullptr;
-	float HamuX;
-	float HamuY;
-	float HamuZ;
+	// ゲームオブジェクトリスト
+	std::vector<std::shared_ptr<KdGameObject>>m_GameObjList;
 
 //=====================================================
 // シングルトンパターン
