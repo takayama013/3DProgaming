@@ -7,6 +7,15 @@
 #include "../../GameObject/Camera/FPSCamera/FPSCamera.h"
 #include "../../GameObject/Camera/TPSCamera/TPSCamera.h"
 #include "../../GameObject/Camera/CCTVCamera/CCTVCamera.h"
+
+// 少数第n位で四捨五入する
+void round_n(float& number, int n)
+{
+	number = number * pow(10, n - 1);
+	number = round(number);
+	number /= pow(10, n - 1);
+}
+
 void GameScene::Init()
 {
 	//===================================================================
@@ -109,28 +118,60 @@ void GameScene::Init()
 	//OutputDebugStringA("------------------------------------------------------------\n");
 
 	// レッスン02 : Cカード99.5%とRカードを0.5％の確率で起動時に表示
-	int _rand = KdGetFloat(0, 100);
-
-	// 結果を出力
-
-	OutputDebugStringA("------------------------------------------------------------\n");
-
+	
+	// レッスン03 : CカードとRカードとSRカードを33％の確率で起動時に表示
+	
+	// レッスン04 : CカードとRカードとSRカードをそれぞれ50%,49.5%,0.5%の確率で表示せよ
 	std::stringstream ss;
+	int _bunbo = 1000;
+	int _randNum[3] = { 500,495,5 };
+	int _thusenNum = 10000000;
+	int _tousenNum[3] = {0,0,0};
 
-	if (_rand > 0.5f)
+	for (int i = 0; i < _thusenNum; i++)
 	{
-		ss << "Cカードゲット！" << "\n";
-		std::string str = ss.str();
-		OutputDebugStringA(str.c_str());
+		int _rand = KdGetInt(0, _bunbo-1);
+		for (int j = 0; j < std::size(_randNum); j++)
+		{
+			_rand -= _randNum[j];
+			if (_rand < 0)
+			{
+				_tousenNum[j]++;
+				break;
+			}
+		}
 	}
 	
-	if (_rand < 0.5f)
+	OutputDebugStringA("------------------------------------------------------------\n");
+	float _prob = 0;
+
+	for (int i = 0; i < std::size(_tousenNum); i++)
 	{
-		ss << "Rカードゲット！" << "\n";
+		std::stringstream ss;
+		_prob = ((float)_tousenNum[i] / (float)_thusenNum) * 100;
+		round_n(_prob, 3);
+
+		switch (i)
+		{
+		case 0:
+			ss << "Cカード" << "当選回数　＝" << _tousenNum[0] <<
+				"当選確率　＝" << _prob << "%" << "\n";
+			break;
+
+		case 1:
+			ss << "Rカード" << "当選回数　＝" << _tousenNum[1] <<
+				"当選確率　＝" << _prob << "%" << "\n";
+			break;
+		case 2:
+			ss << "SRカード" << "当選回数　＝" << _tousenNum[2] <<
+				"当選確率　＝" << _prob << "%" << "\n";
+			break;
+		}
+
 		std::string str = ss.str();
 		OutputDebugStringA(str.c_str());
-	}
 
+	}
 	OutputDebugStringA("------------------------------------------------------------\n");
 
 }
